@@ -1,5 +1,7 @@
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -13,16 +15,17 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?         // For Credentials provider
+  role          Role            @default(STAFF)
+  status        UserStatus      @default(ACTIVE)
+  
   accounts      Account[]
   sessions      Session[]
-  // Optional for WebAuthn support
-  Authenticator Authenticator[]
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  
   // Multi-tenancy
   tenants       TenantUser[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Account {
@@ -64,40 +67,45 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
-// Optional for WebAuthn support
-model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
- 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
-  @@id([userId, credentialID])
-}
-
 // Custom Models
 
 model Tenant {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique // For subdomains or URL paths
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String           @id @default(cuid())
+  name              String
+  slug              String           @unique // For subdomains or URL paths
+  propertyCode      String           @unique // e.g. HTL001
+  
+  // Subscription
+  subscriptionPlan  SubscriptionPlan @default(TRIAL)
+  subscriptionStart DateTime?        @default(now())
+  subscriptionEnd   DateTime?
+  isActive          Boolean          @default(true)
+  
+  // Limits
+  maxRooms          Int              @default(10)
+  maxUsers          Int              @default(3)
+  
+  // Contact Info
+  contactName       String?
+  contactEmail      String?
+  contactPhone      String?
+  address           String?
+  city              String?
+  state             String?
+  country           String?          @default("India")
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
-  users       TenantUser[]
-  properties  Property[]
+  users             TenantUser[]
+  properties        Property[]
 }
 
 model TenantUser {
   id        String   @id @default(cuid())
   tenantId  String
   userId    String
-  role      Role     @default(STAFF) // OWNER, ADMIN, STAFF, GUEST
+  role      Role     @default(STAFF)
 
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -116,8 +124,26 @@ model Property {
 }
 
 enum Role {
+  MASTER_ADMIN
   OWNER
   ADMIN
+  MANAGER
+  FRONTDESK
+  HOUSEKEEPING
   STAFF
   GUEST
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum SubscriptionPlan {
+  TRIAL
+  BASIC
+  STANDARD
+  PREMIUM
+  ENTERPRISE
 }

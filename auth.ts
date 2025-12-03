@@ -1,14 +1,14 @@
 
 import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, Role } from "@prisma/client"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
 const prisma = new PrismaClient()
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-    adapter: PrismaAdapter(prisma),
+    adapter: PrismaAdapter(prisma) as any,
     providers: [
         Credentials({
             name: "Credentials",
@@ -49,10 +49,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         async session({ session, token }) {
             if (token.sub && session.user) {
                 session.user.id = token.sub
+                session.user.role = token.role as Role
+                session.user.tenantId = token.tenantId as string | undefined
             }
             return session
         },
         async jwt({ token }) {
+            if (!token.sub) return token
+
+            const user = await prisma.user.findUnique({
+                where: { id: token.sub },
+                include: { tenants: true } // Get tenant info
+            })
+
+            if (user) {
+                token.role = user.role as Role
+                // For now, just grab the first tenant if exists (Owner logic)
+                // In future, we might handle multiple tenants
+                token.tenantId = user.tenants[0]?.tenantId as string | undefined
+            }
+
             return token
         }
     },
