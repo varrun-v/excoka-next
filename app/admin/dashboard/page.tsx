@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth/auth"
+import { auth, signOut } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
 import prisma from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
@@ -48,7 +48,17 @@ export default async function AdminDashboard() {
                 <div className="flex items-center justify-between space-y-2">
                     <h2 className="text-3xl font-bold tracking-tight">Master Admin Dashboard</h2>
                     <div className="flex items-center space-x-2">
-                        <CreateTenantDialog />
+                        <div className="flex items-center gap-4">
+                            <CreateTenantDialog />
+                            <form
+                                action={async () => {
+                                    "use server"
+                                    await signOut()
+                                }}
+                            >
+                                <Button variant="outline">Sign Out</Button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
