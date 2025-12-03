@@ -1,28 +1,27 @@
-
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import bcrypt from "bcryptjs"
-import { auth } from "@/auth"
+import { auth } from "@/lib/auth/auth"
+
+import { createTenantSchema } from "@/lib/validation/tenant.schema"
+
+import { requireRole } from "@/lib/permissions/rbac"
 
 export async function POST(req: Request) {
     try {
-        const session = await auth()
-
-        // Authorization check
-        if (session?.user?.role !== "MASTER_ADMIN") {
-            // return NextResponse.json({ message: "Unauthorized" }, { status: 403 })
-            // Temporarily disabled for testing until seed script is run and login works
-        }
+        await requireRole("MASTER_ADMIN")
 
         const body = await req.json()
-        const { propertyName, ownerName, ownerEmail, ownerPassword, plan } = body
 
-        if (!propertyName || !ownerEmail || !ownerPassword) {
+        const validation = createTenantSchema.safeParse(body)
+        if (!validation.success) {
             return NextResponse.json(
-                { message: "Missing required fields" },
+                { message: "Invalid input", errors: validation.error.flatten() },
                 { status: 400 }
             )
         }
+
+        const { propertyName, ownerName, ownerEmail, ownerPassword, plan } = validation.data
 
         // Check if user already exists
         const existingUser = await prisma.user.findUnique({

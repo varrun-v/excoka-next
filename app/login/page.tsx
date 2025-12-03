@@ -19,15 +19,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { loginSchema } from "@/lib/validation/auth.schema"
 
-const formSchema = z.object({
-    email: z.string().email({
-        message: "Please enter a valid email address.",
-    }),
-    password: z.string().min(1, {
-        message: "Password is required.",
-    }),
-})
+const formSchema = loginSchema
 
 export default function LoginPage() {
     const router = useRouter()

@@ -1,5 +1,4 @@
-
-import { auth } from "@/auth"
+import { auth } from "@/lib/auth/auth"
 import { redirect } from "next/navigation"
 import prisma from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
