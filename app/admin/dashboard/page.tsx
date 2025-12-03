@@ -1,7 +1,7 @@
 
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { PrismaClient } from "@prisma/client"
+import prisma from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -21,8 +21,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { PlusCircle } from "lucide-react"
 import { CreateTenantDialog } from "./create-tenant-dialog"
-
-const prisma = new PrismaClient()
 
 async function getTenants() {
     return await prisma.tenant.findMany({
