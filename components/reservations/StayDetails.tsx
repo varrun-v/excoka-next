@@ -40,7 +40,7 @@ export function StayDetails({ form }: StayDetailsProps) {
 
     return (
         <Card>
-            <CardHeader className="pb-3 border-b mb-4">
+            <CardHeader className="pb-3 border-b">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary">
                         <CalendarIcon className="h-5 w-5" />
@@ -48,43 +48,36 @@ export function StayDetails({ form }: StayDetailsProps) {
                     Stay & Booking Details
                 </CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-6">
-                {/* Check-in / Check-out Row */}
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_auto] gap-4 items-end">
-                    {/* Check-in Date */}
+                {/* Check-in/out */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_120px_1fr_120px_120px] gap-4 items-end">
+                    {/* Check-In */}
                     <FormField
                         control={form.control}
                         name="checkIn"
                         render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel className="after:content-['*'] after:ml-0.5 after:text-red-500">Check-in Date</FormLabel>
+                            <FormItem>
+                                <FormLabel className="required">Check-in Date</FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, "PPP")
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
+                                        <Button
+                                            variant="outline"
+                                            className={cn(
+                                                "w-full justify-start text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {field.value ? format(field.value, "PPP") : "Pick a date"}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <PopoverContent align="start" className="p-0">
                                         <Calendar
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            disabled={(date) =>
-                                                date < new Date()
-                                            }
+                                            disabled={(d) => d < new Date()}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -94,126 +87,107 @@ export function StayDetails({ form }: StayDetailsProps) {
                         )}
                     />
 
-                    {/* Check-in Time */}
+                    {/* Check-In Time */}
                     <FormField
                         control={form.control}
                         name="checkInTime"
                         render={({ field }) => (
-                            <FormItem className="w-[100px]">
+                            <FormItem>
                                 <FormLabel>Time</FormLabel>
-                                <FormControl>
-                                    <Input type="time" {...field} />
-                                </FormControl>
-                                <FormMessage />
+                                <Input type="time" {...field} />
                             </FormItem>
                         )}
                     />
 
-                    {/* Check-out Date */}
+                    {/* Check-Out */}
                     <FormField
                         control={form.control}
                         name="checkOut"
                         render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel className="after:content-['*'] after:ml-0.5 after:text-red-500">Check-out Date</FormLabel>
+                            <FormItem>
+                                <FormLabel className="required">Check-out Date</FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(field.value, "PPP")
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
+                                        <Button
+                                            variant="outline"
+                                            className={cn(
+                                                "w-full justify-start text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {field.value ? format(field.value, "PPP") : "Pick a date"}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <PopoverContent align="start" className="p-0">
                                         <Calendar
                                             mode="single"
                                             selected={field.value}
                                             onSelect={field.onChange}
-                                            disabled={(date) =>
-                                                date <= (checkIn || new Date())
-                                            }
+                                            disabled={(d) => d <= (checkIn ?? new Date())}
                                             initialFocus
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                <FormMessage />
                             </FormItem>
                         )}
                     />
 
-                    {/* Check-out Time */}
+                    {/* Check-Out Time */}
                     <FormField
                         control={form.control}
                         name="checkOutTime"
                         render={({ field }) => (
-                            <FormItem className="w-[100px]">
+                            <FormItem>
                                 <FormLabel>Time</FormLabel>
-                                <FormControl>
-                                    <Input type="time" {...field} />
-                                </FormControl>
-                                <FormMessage />
+                                <Input type="time" {...field} />
                             </FormItem>
                         )}
                     />
 
-                    {/* Nights Badge */}
-                    <div className="hidden md:flex flex-col items-center justify-center pb-2">
-                        <FormLabel className="mb-2">Nights</FormLabel>
-                        <div className="bg-primary/10 text-primary font-bold px-4 py-2 rounded-lg min-w-[80px] text-center flex items-center gap-2">
-                            <i className="bi bi-moon-stars-fill"></i>
+                    {/* Nights */}
+                    <div className="flex flex-col items-center gap-2 lg:pb-2">
+                        <FormLabel>Nights</FormLabel>
+                        <div className="bg-primary/10 text-primary font-bold px-4 py-2 rounded-lg min-w-[80px] text-center">
                             {nights > 0 ? nights : 0}
                         </div>
                     </div>
                 </div>
 
-                {/* Booking Details Row */}
+                {/* Booking Details */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Reservation Type */}
                     <FormField
                         control={form.control}
                         name="reservationType"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="after:content-['*'] after:ml-0.5 after:text-red-500">Reservation Type</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Type" />
-                                        </SelectTrigger>
-                                    </FormControl>
+                                <FormLabel className="required">Reservation Type</FormLabel>
+                                <Select {...field} onValueChange={field.onChange}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Type" />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="confirmed">Confirmed</SelectItem>
                                         <SelectItem value="tentative">Tentative</SelectItem>
                                         <SelectItem value="waitlist">Waitlist</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
                             </FormItem>
                         )}
                     />
 
+                    {/* Booking Source */}
                     <FormField
                         control={form.control}
                         name="bookingSource"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Booking Source</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Source" />
-                                        </SelectTrigger>
-                                    </FormControl>
+                                <Select {...field} onValueChange={field.onChange}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Source" />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="direct">Direct</SelectItem>
                                         <SelectItem value="website">Website</SelectItem>
@@ -226,23 +200,21 @@ export function StayDetails({ form }: StayDetailsProps) {
                                         <SelectItem value="walkin">Walk-in</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
                             </FormItem>
                         )}
                     />
 
+                    {/* Market Segment */}
                     <FormField
                         control={form.control}
                         name="marketSegment"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Market Segment</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Segment" />
-                                        </SelectTrigger>
-                                    </FormControl>
+                                <Select {...field} onValueChange={field.onChange}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Segment" />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="corporate">Corporate</SelectItem>
                                         <SelectItem value="leisure">Leisure</SelectItem>
@@ -251,7 +223,6 @@ export function StayDetails({ form }: StayDetailsProps) {
                                         <SelectItem value="travel_agent">Travel Agent</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
                             </FormItem>
                         )}
                     />
@@ -260,3 +231,4 @@ export function StayDetails({ form }: StayDetailsProps) {
         </Card>
     )
 }
+
