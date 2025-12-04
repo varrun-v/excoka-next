@@ -28,50 +28,69 @@ const statusColors: Record<string, string> = {
 
 export function RoomCard({ room }: RoomCardProps) {
     return (
-        <Card className="overflow-hidden border-t-4 border-t-primary shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="p-0 pb-0 flex flex-row items-center justify-between space-y-0">
-                <Badge variant="secondary" className="font-normal text-xs">
-                    <DoorOpen className="h-3 w-3 mr-1" /> Status
+        <Card className="overflow-hidden rounded-xl border shadow-sm hover:shadow-md transition-all">
+            {/* Header */}
+            <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
+                <Badge variant="secondary" className="text-[10px] font-medium">
+                    Status
                 </Badge>
-                <Badge className={`${statusColors[room.status]} text-white border-0`}>
+                <Badge className={`${statusColors[room.status]} text-white text-[10px] px-2 py-0.5`}>
                     {room.status}
                 </Badge>
             </CardHeader>
-            <CardContent className="p-0 pt-0">
-                <div className="flex justify-center py-0.5">
-                    <div className="h-8 w-8 rounded-full bg-primary/5 flex items-center justify-center text-primary">
-                        <DoorOpen className="h-4 w-4" />
+
+            {/* Icon + Room Info */}
+            <CardContent className="px-4 pb-3">
+                <div className="flex justify-center mb-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <DoorOpen className="h-5 w-5" />
                     </div>
                 </div>
-                <div className="text-center space-y-1 mb-2">
-                    <h3 className="font-bold text-xs">Room {room.number}</h3>
-                    <p className="text-xs text-muted-foreground">{room.type} • Floor {room.floor}</p>
-                    <div className="text-primary font-bold text-xs">
-                        ₹{room.price.toLocaleString()}<span className="text-xs text-muted-foreground font-normal">/night</span>
-                    </div>
+
+                <div className="text-center space-y-1 mb-3">
+                    <h3 className="font-semibold text-sm">Room {room.number}</h3>
+                    <p className="text-xs text-muted-foreground">
+                        {room.type} • Floor {room.floor}
+                    </p>
+                    <p className="text-sm font-semibold text-primary">
+                        ₹{room.price.toLocaleString()}
+                        <span className="text-xs text-muted-foreground ml-1">/night</span>
+                    </p>
                 </div>
+
+                {/* Amenities */}
                 <div className="flex flex-wrap gap-2 justify-center">
                     {room.amenities.slice(0, 3).map((amenity) => {
                         const Icon = amenityIcons[amenity] || CheckCircle2
                         return (
-                            <Badge key={amenity} variant="outline" className="text-[10px] px-2 py-0.5 h-5 gap-1 font-normal bg-muted/50">
+                            <Badge
+                                key={amenity}
+                                variant="outline"
+                                className="text-[10px] px-2 py-0.5 h-5 gap-1 bg-muted/40"
+                            >
                                 <Icon className="h-3 w-3" /> {amenity}
                             </Badge>
                         )
                     })}
+
                     {room.amenities.length > 3 && (
-                        <Badge variant="outline" className="text-[10px] px-2 py-0.5 h-5 font-normal bg-muted/50">
+                        <Badge
+                            variant="outline"
+                            className="text-[10px] px-2 py-0.5 h-5 bg-muted/40"
+                        >
                             +{room.amenities.length - 3}
                         </Badge>
                     )}
                 </div>
             </CardContent>
+
             <CardFooter className="p-2 pt-0 flex justify-end">
-                <Button variant="ghost" className="p-0 h-6 w-6" aria-label="Edit room">
+                <Button variant="ghost" className="p-1 h-7 w-7">
                     <Edit className="h-4 w-4" />
                 </Button>
             </CardFooter>
         </Card>
     )
 }
+
 import { CheckCircle2 } from "lucide-react"
