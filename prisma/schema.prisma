@@ -8,6 +8,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ============================================
+// CORE AUTHENTICATION & USERS
+// ============================================
+
 model User {
   id            String          @id @default(cuid())
   name          String?
@@ -17,15 +21,25 @@ model User {
   password      String?         // For Credentials provider
   role          Role            @default(STAFF)
   status        UserStatus      @default(ACTIVE)
+  phone         String?
   
+  // Relations
   accounts      Account[]
   sessions      Session[]
   
   // Multi-tenancy
-  tenants       TenantUser[]
+  memberships   Membership[]
+  
+  // Auditing
+  createdBookings Booking[]     @relation("CreatedBookings")
+  createdBlocks   Block[]       @relation("CreatedBlocks")
+  processedPayments Payment[]   @relation("ProcessedPayments")
+  processedRefunds  PaymentRefund[] @relation("ProcessedRefunds")
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([email])
 }
 
 model Account {
@@ -67,7 +81,9 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
-// Custom Models
+// ============================================
+// TENANCY & PROPERTIES
+// ============================================
 
 model Tenant {
   id                String           @id @default(cuid())
@@ -93,15 +109,25 @@ model Tenant {
   city              String?
   state             String?
   country           String?          @default("India")
+  pincode           String?
+  
+  // Settings
+  settings          Json?            // Property-specific settings
   
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
-  users             TenantUser[]
-  properties        Property[]
+  // Relations
+  memberships       Membership[]
+  rooms             Room[]
+  guests            Guest[]
+  bookings          Booking[]
+  blocks            Block[]
+  addOns            AddOn[]
+  auditLogs         AuditLog[]
 }
 
-model TenantUser {
+model Membership {
   id        String   @id @default(cuid())
   tenantId  String
   userId    String
@@ -113,19 +139,310 @@ model TenantUser {
   @@unique([tenantId, userId])
 }
 
-model Property {
+// ============================================
+// ROOM MANAGEMENT
+// ============================================
+
+model Room {
+  id                String      @id @default(cuid())
+  tenantId          String
+  tenant            Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  roomNumber        String
+  floor             Int?
+  roomType          RoomType
+  baseRate          Decimal     @db.Decimal(10, 2)
+  status            RoomStatus  @default(AVAILABLE)
+  
+  comfortableGuests Int         @default(2)
+  maxGuests         Int         @default(3)
+  extraGuestAllowed Boolean     @default(true)
+  extraGuestCharge  Decimal?    @default(0) @db.Decimal(10, 2)
+  
+  amenities         Json?       // Array of strings
+  notes             String?     @db.Text
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  // Relations
+  bookings          Booking[]
+  blocks            Block[]
+
+  @@unique([tenantId, roomNumber])
+  @@index([tenantId])
+  @@index([status])
+}
+
+model Block {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  blockReference  String    @unique
+  roomId          String
+  room            Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  startDate       DateTime  @db.Date
+  endDate         DateTime  @db.Date
+  reason          String?
+  
+  createdBy       String?
+  creator         User?     @relation("CreatedBlocks", fields: [createdBy], references: [id])
+  
+  createdAt       DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([roomId])
+  @@index([startDate, endDate])
+}
+
+// ============================================
+// GUEST MANAGEMENT
+// ============================================
+
+model Guest {
+  id              String    @id @default(cuid())
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  fullName        String
+  email           String?
+  phone           String?
+  address         String?   @db.Text
+  
+  idType          IdType
+  idNumber        String
+  guestType       GuestType @default(REGULAR)
+  
+  roomPreference  String?
+  notes           String?   @db.Text
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  bookings        Booking[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@index([phone])
+}
+
+// ============================================
+// BOOKINGS & RESERVATIONS
+// ============================================
+
+model Booking {
+  id                String        @id @default(cuid())
+  tenantId          String
+  tenant            Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  bookingReference  String        @unique
+  
+  guestId           String
+  guest             Guest         @relation(fields: [guestId], references: [id])
+  
+  roomId            String
+  room              Room          @relation(fields: [roomId], references: [id])
+  
+  checkIn           DateTime      @db.Date
+  checkOut          DateTime      @db.Date
+  numberOfGuests    Int           @default(1)
+  
+  // Financials
+  totalAmount       Decimal       @db.Decimal(10, 2)
+  paidAmount        Decimal       @default(0) @db.Decimal(10, 2)
+  // balanceAmount is calculated in app logic
+  
+  paymentMethod     PaymentMethod @default(CASH)
+  paymentStatus     PaymentStatus @default(PENDING)
+  status            BookingStatus @default(PENDING)
+  bookingSource     BookingSource @default(DIRECT)
+  
+  // Extras
+  breakfastIncluded Boolean       @default(false)
+  airportPickup     Boolean       @default(false)
+  extraBed          Boolean       @default(false)
+  earlyCheckin      Boolean       @default(false)
+  
+  // Discounts
+  discountAmount    Decimal       @default(0) @db.Decimal(10, 2)
+  discountType      DiscountType  @default(NONE)
+  discountCode      String?
+  discountReason    String?
+  
+  specialRequests   String?       @db.Text
+  notes             String?       @db.Text
+  
+  createdBy         String?
+  creator           User?         @relation("CreatedBookings", fields: [createdBy], references: [id])
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  // Relations
+  addons            BookingAddon[]
+  payments          Payment[]
+  notifications     NotificationQueue[]
+
+  @@index([tenantId])
+  @@index([guestId])
+  @@index([roomId])
+  @@index([checkIn, checkOut])
+  @@index([status])
+}
+
+// ============================================
+// ADD-ONS & SERVICES
+// ============================================
+
+model AddOn {
+  id            String        @id @default(cuid())
+  tenantId      String
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  name          String
+  description   String?       @db.Text
+  price         Decimal       @db.Decimal(10, 2)
+  perNight      Boolean       @default(false)
+  category      AddOnCategory @default(OTHER)
+  
+  isActive      Boolean       @default(true)
+  displayOrder  Int           @default(0)
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relations
+  bookingAddons BookingAddon[]
+
+  @@index([tenantId])
+}
+
+model BookingAddon {
+  id          String    @id @default(cuid())
+  bookingId   String
+  booking     Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  addonId     String
+  addon       AddOn     @relation(fields: [addonId], references: [id])
+  
+  quantity    Int       @default(1)
+  unitPrice   Decimal   @db.Decimal(10, 2) // Price at time of booking
+  totalPrice  Decimal   @db.Decimal(10, 2)
+  nights      Int       @default(1)
+  notes       String?   @db.Text
+
+  @@index([bookingId])
+}
+
+// ============================================
+// PAYMENTS
+// ============================================
+
+model Payment {
+  id                  String        @id @default(cuid())
+  bookingId           String
+  booking             Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  amount              Decimal       @db.Decimal(10, 2)
+  currency            String        @default("INR")
+  paymentMethod       PaymentMethod @default(CASH)
+  gateway             PaymentGateway @default(MANUAL)
+  
+  gatewayPaymentId    String?       // Stripe PaymentIntent ID or Razorpay Order ID
+  gatewayTransactionId String?      // Actual transaction ID
+  
+  status              PaymentStatus @default(PENDING)
+  errorMessage        String?       @db.Text
+  
+  userId              String?
+  processedBy         User?         @relation("ProcessedPayments", fields: [userId], references: [id])
+  
+  createdAt           DateTime      @default(now())
+  completedAt         DateTime?
+  refundedAt          DateTime?
+  metadata            Json?
+  
+  // Relations
+  refunds             PaymentRefund[]
+
+  @@index([bookingId])
+}
+
+model PaymentRefund {
+  id                String        @id @default(cuid())
+  paymentId         String
+  payment           Payment       @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  
+  amount            Decimal       @db.Decimal(10, 2)
+  reason            String?
+  gatewayRefundId   String?
+  
+  status            RefundStatus  @default(PENDING)
+  
+  userId            String?
+  processedBy       User?         @relation("ProcessedRefunds", fields: [userId], references: [id])
+  
+  createdAt         DateTime      @default(now())
+  completedAt       DateTime?
+
+  @@index([paymentId])
+}
+
+// ============================================
+// NOTIFICATIONS & AUDIT
+// ============================================
+
+model NotificationQueue {
+  id              String           @id @default(cuid())
+  bookingId       String?
+  booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  type            NotificationType
+  recipient       String
+  subject         String?
+  message         String           @db.Text
+  status          NotificationStatus @default(PENDING)
+  
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  errorMessage    String?          @db.Text
+  attempts        Int              @default(0)
+  
+  createdAt       DateTime         @default(now())
+
+  @@index([bookingId])
+  @@index([status])
+}
+
+model AuditLog {
   id          String   @id @default(cuid())
-  name        String
   tenantId    String
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   
+  userId      String?
+  action      String
+  tableName   String?
+  recordId    String?
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  userAgent   String?
+  
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([action])
 }
+
+// ============================================
+// ENUMS
+// ============================================
 
 enum Role {
   MASTER_ADMIN
-  OWNER
   ADMIN
   MANAGER
   FRONTDESK
@@ -146,4 +463,110 @@ enum SubscriptionPlan {
   STANDARD
   PREMIUM
   ENTERPRISE
+}
+
+enum RoomType {
+  STANDARD
+  DELUXE
+  SUITE
+  EXECUTIVE
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  CLEANING
+  BLOCKED
+}
+
+enum IdType {
+  AADHAR
+  PASSPORT
+  DRIVING_LICENSE
+  VOTER_ID
+  OTHER
+}
+
+enum GuestType {
+  REGULAR
+  VIP
+  CORPORATE
+}
+
+enum BookingStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+  FAILED
+  COMPLETED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  BANK_TRANSFER
+  ONLINE
+  OTHER
+}
+
+enum PaymentGateway {
+  STRIPE
+  RAZORPAY
+  MANUAL
+}
+
+enum RefundStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum BookingSource {
+  DIRECT
+  WEBSITE
+  OTA
+  WALKIN
+  PHONE
+}
+
+enum DiscountType {
+  NONE
+  FLAT
+  PERCENTAGE
+  COUPON
+}
+
+enum AddOnCategory {
+  FOOD
+  TRANSPORT
+  AMENITY
+  SERVICE
+  OTHER
+}
+
+enum NotificationType {
+  EMAIL
+  SMS
+  WHATSAPP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
 }
