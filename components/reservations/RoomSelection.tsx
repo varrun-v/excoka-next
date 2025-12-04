@@ -1,7 +1,7 @@
 "use client"
 
 import { UseFormReturn } from "react-hook-form"
-import { BedDouble, Plus } from "lucide-react"
+import { BedDouble, Plus, Percent } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -32,7 +32,7 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                     <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary">
                         <BedDouble className="h-5 w-5" />
                     </div>
-                    Select Rooms & Rates
+                    Room Selection
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -47,12 +47,12 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                             <Label htmlFor="book-all">Book All Rooms</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <Checkbox id="complimentary" />
-                            <Label htmlFor="complimentary">Complimentary</Label>
+                            <Checkbox id="group" />
+                            <Label htmlFor="group">Group Booking</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <Checkbox id="house-use" />
-                            <Label htmlFor="house-use">House Use</Label>
+                            <Checkbox id="complimentary" />
+                            <Label htmlFor="complimentary">Complimentary</Label>
                         </div>
                     </div>
                 </div>
@@ -60,14 +60,16 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                 <div className="space-y-4">
                     <div className="grid grid-cols-[2fr_1.5fr_1fr_80px_80px_120px_auto] gap-3 items-end">
                         <div className="space-y-2">
-                            <Label>Room Type</Label>
+                            <Label className="after:content-['*'] after:ml-0.5 after:text-red-500">Room Type</Label>
                             <Select>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Room" />
+                                    <SelectValue placeholder="Select Room Type" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value="standard">Standard Room</SelectItem>
                                     <SelectItem value="deluxe">Deluxe Room</SelectItem>
-                                    <SelectItem value="suite">Executive Suite</SelectItem>
+                                    <SelectItem value="suite">Suite</SelectItem>
+                                    <SelectItem value="executive">Executive Room</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -80,27 +82,31 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="standard">Standard Rate</SelectItem>
-                                    <SelectItem value="breakfast">Bed & Breakfast</SelectItem>
+                                    <SelectItem value="corporate">Corporate Rate</SelectItem>
+                                    <SelectItem value="weekend">Weekend Special</SelectItem>
+                                    <SelectItem value="longstay">Long Stay</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Room No.</Label>
+                            <Label className="after:content-['*'] after:ml-0.5 after:text-red-500">Room No.</Label>
                             <Select>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Auto" />
+                                    <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="101">101</SelectItem>
                                     <SelectItem value="102">102</SelectItem>
+                                    <SelectItem value="201">201</SelectItem>
+                                    <SelectItem value="202">202</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Adults</Label>
-                            <Input type="number" min={1} defaultValue={2} />
+                            <Label className="after:content-['*'] after:ml-0.5 after:text-red-500">Adults</Label>
+                            <Input type="number" min={1} defaultValue={1} />
                         </div>
 
                         <div className="space-y-2">
@@ -109,12 +115,18 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Rate</Label>
+                            <Label className="after:content-['*'] after:ml-0.5 after:text-red-500">Rate (₹)</Label>
                             <Input type="number" placeholder="0.00" />
                         </div>
 
                         <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
                             <Plus className="h-4 w-4 mr-1" /> Add
+                        </Button>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <Button variant="outline" className="text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700">
+                            <Percent className="h-4 w-4 mr-2" /> Apply Discount
                         </Button>
                     </div>
                 </div>

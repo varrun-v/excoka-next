@@ -11,9 +11,6 @@ export default function ReservationPage() {
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                         Reservation
                     </h1>
-                    <span className="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-sm font-semibold border border-blue-100">
-                        Draft • Not Saved
-                    </span>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link href="/dashboard/reservations">
