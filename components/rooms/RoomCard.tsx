@@ -2,7 +2,7 @@ import { Room } from "@/lib/data/mock-rooms"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DoorOpen, Wifi, Tv, Wind, Coffee, Bath, Utensils, Edit, CalendarCheck } from "lucide-react"
+import { DoorOpen, Wifi, Tv, Wind, Coffee, Bath, Utensils, Edit } from "lucide-react"
 
 interface RoomCardProps {
     room: Room
@@ -29,7 +29,7 @@ const statusColors: Record<string, string> = {
 export function RoomCard({ room }: RoomCardProps) {
     return (
         <Card className="overflow-hidden border-t-4 border-t-primary shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardHeader className="p-0 pb-0 flex flex-row items-center justify-between space-y-0">
                 <Badge variant="secondary" className="font-normal text-xs">
                     <DoorOpen className="h-3 w-3 mr-1" /> Status
                 </Badge>
@@ -37,16 +37,16 @@ export function RoomCard({ room }: RoomCardProps) {
                     {room.status}
                 </Badge>
             </CardHeader>
-            <CardContent className="p-4 pt-2">
-                <div className="flex justify-center py-4">
-                    <div className="h-16 w-16 rounded-full bg-primary/5 flex items-center justify-center text-primary">
-                        <DoorOpen className="h-8 w-8" />
+            <CardContent className="p-0 pt-0">
+                <div className="flex justify-center py-0.5">
+                    <div className="h-8 w-8 rounded-full bg-primary/5 flex items-center justify-center text-primary">
+                        <DoorOpen className="h-4 w-4" />
                     </div>
                 </div>
-                <div className="text-center space-y-1 mb-4">
-                    <h3 className="font-bold text-lg">Room {room.number}</h3>
-                    <p className="text-sm text-muted-foreground">{room.type} • Floor {room.floor}</p>
-                    <div className="text-primary font-bold text-lg">
+                <div className="text-center space-y-1 mb-2">
+                    <h3 className="font-bold text-xs">Room {room.number}</h3>
+                    <p className="text-xs text-muted-foreground">{room.type} • Floor {room.floor}</p>
+                    <div className="text-primary font-bold text-xs">
                         ₹{room.price.toLocaleString()}<span className="text-xs text-muted-foreground font-normal">/night</span>
                     </div>
                 </div>
@@ -66,16 +66,12 @@ export function RoomCard({ room }: RoomCardProps) {
                     )}
                 </div>
             </CardContent>
-            <CardFooter className="p-4 pt-0 grid grid-cols-2 gap-2">
-                <Button className="w-full bg-primary/90 hover:bg-primary text-xs h-8">
-                    <CalendarCheck className="h-3 w-3 mr-1" /> Book Now
-                </Button>
-                <Button variant="outline" className="w-full text-xs h-8">
-                    <Edit className="h-3 w-3 mr-1" /> Edit
+            <CardFooter className="p-2 pt-0 flex justify-end">
+                <Button variant="ghost" className="p-0 h-6 w-6" aria-label="Edit room">
+                    <Edit className="h-4 w-4" />
                 </Button>
             </CardFooter>
         </Card>
     )
 }
-
 import { CheckCircle2 } from "lucide-react"

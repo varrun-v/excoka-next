@@ -35,9 +35,7 @@ export default function RoomsPage() {
             <RoomStats stats={ROOM_STATS} />
 
             <div className="space-y-4">
-                <div className="bg-card rounded-lg border p-4 shadow-sm">
-                    <RoomFilters />
-                </div>
+                <RoomFilters />
                 <RoomGrid rooms={MOCK_ROOMS} />
             </div>
         </div>
