@@ -52,9 +52,15 @@ export default function LoginPage() {
                 return
             }
 
-            // Redirect handled by middleware or client-side check
-            // For now, force reload to let middleware handle it or router.push
-            router.push("/dashboard")
+            // Fetch the session to check the role
+            const response = await fetch("/api/auth/session")
+            const session = await response.json()
+
+            if (session?.user?.role === "MASTER_ADMIN") {
+                router.push("/admin/dashboard")
+            } else {
+                router.push("/dashboard")
+            }
             router.refresh()
 
         } catch (error) {
