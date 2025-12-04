@@ -61,14 +61,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             const user = await prisma.user.findUnique({
                 where: { id: token.sub },
-                include: { tenants: true } // Get tenant info
+                include: { memberships: true } // Get tenant info
             })
 
             if (user) {
                 token.role = user.role as Role
                 // For now, just grab the first tenant if exists (Owner logic)
                 // In future, we might handle multiple tenants
-                token.tenantId = user.tenants[0]?.tenantId as string | undefined
+                token.tenantId = user.memberships[0]?.tenantId as string | undefined
             }
 
             return token

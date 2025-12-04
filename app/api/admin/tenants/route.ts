@@ -61,16 +61,16 @@ export async function POST(req: Request) {
                     email: ownerEmail,
                     name: ownerName,
                     password: hashedPassword,
-                    role: "OWNER",
+                    role: "ADMIN",
                 },
             })
 
             // 3. Link User to Tenant
-            await tx.tenantUser.create({
+            await tx.membership.create({
                 data: {
                     userId: user.id,
                     tenantId: tenant.id,
-                    role: "OWNER",
+                    role: "ADMIN",
                 },
             })
 

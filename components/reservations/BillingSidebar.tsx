@@ -27,6 +27,19 @@ interface BillingSidebarProps {
 
 export function BillingSidebar({ form }: BillingSidebarProps) {
     const billTo = form.watch("billTo")
+    const rooms = form.watch("rooms") || []
+    const checkIn = form.watch("checkIn")
+    const checkOut = form.watch("checkOut")
+
+    // Calculate nights
+    const nights = checkIn && checkOut ? Math.max(1, Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))) : 1
+
+    // Calculate totals
+    const roomCharges = rooms.reduce((acc: number, room: any) => acc + (Number(room.price) || 0), 0) * nights
+    const addonsTotal = 0 // TODO: Calculate from addons
+    const discount = 0
+    const tax = roomCharges * 0.18 // Assuming 18% GST
+    const totalAmount = roomCharges + addonsTotal - discount + tax
 
     return (
         <Card className="border-2 border-primary/10 shadow-lg sticky top-6">
@@ -103,20 +116,20 @@ export function BillingSidebar({ form }: BillingSidebarProps) {
                     {/* Summary Breakdown */}
                     <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Room Charges</span>
-                            <span className="font-medium">₹0.00</span>
+                            <span className="text-muted-foreground">Room Charges ({nights} nights)</span>
+                            <span className="font-medium">₹{roomCharges.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">Add-ons & Services</span>
-                            <span className="font-medium">₹0.00</span>
+                            <span className="font-medium">₹{addonsTotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm text-green-600">
                             <span className="font-medium">Discount</span>
-                            <span className="font-medium">- ₹0.00</span>
+                            <span className="font-medium">- ₹{discount.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Taxes (GST)</span>
-                            <span className="font-medium">₹0.00</span>
+                            <span className="text-muted-foreground">Taxes (GST 18%)</span>
+                            <span className="font-medium">₹{tax.toFixed(2)}</span>
                         </div>
                     </div>
 
@@ -124,7 +137,7 @@ export function BillingSidebar({ form }: BillingSidebarProps) {
 
                     <div className="flex justify-between items-end">
                         <span className="text-base font-bold">Total Amount</span>
-                        <span className="text-2xl font-bold text-primary">₹0.00</span>
+                        <span className="text-2xl font-bold text-primary">₹{totalAmount.toFixed(2)}</span>
                     </div>
 
                     {/* Payment Status */}

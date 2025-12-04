@@ -54,6 +54,8 @@ export const reservationSchema = z.object({
         ratePlanId: z.string(),
         roomNumber: z.string(),
         price: z.coerce.number(),
+        adults: z.coerce.number().min(1),
+        children: z.coerce.number().default(0),
     })),
 })
 

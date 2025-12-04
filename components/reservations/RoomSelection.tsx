@@ -1,6 +1,7 @@
 "use client"
 
-import { UseFormReturn } from "react-hook-form"
+import { useState } from "react"
+import { UseFormReturn, useFieldArray } from "react-hook-form"
 import { BedDouble, Plus, Percent } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,6 +26,37 @@ interface RoomSelectionProps {
 }
 
 export function RoomSelection({ form }: RoomSelectionProps) {
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "rooms",
+    })
+
+    const [currentRoom, setCurrentRoom] = useState({
+        roomTypeId: "",
+        ratePlanId: "",
+        roomNumber: "",
+        adults: 1,
+        children: 0,
+        price: 0,
+    })
+
+    const handleAddRoom = () => {
+        if (!currentRoom.roomTypeId || !currentRoom.roomNumber) return
+
+        append({
+            ...currentRoom,
+            roomTypeId: currentRoom.roomTypeId, // Ensure string
+            ratePlanId: currentRoom.ratePlanId || "standard",
+            roomNumber: currentRoom.roomNumber,
+            price: Number(currentRoom.price),
+            adults: Number(currentRoom.adults),
+            children: Number(currentRoom.children),
+        })
+
+        // Reset form (keep some defaults if needed)
+        setCurrentRoom(prev => ({ ...prev, roomNumber: "", price: 0 }))
+    }
+
     return (
         <Card>
             <CardHeader className="pb-3 border-b">
@@ -36,7 +68,7 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                 </CardTitle>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="pt-6">
                 {/* Toggles */}
                 <div className="bg-muted/40 p-4 rounded-lg mb-6 border">
                     <div className="flex flex-wrap gap-4">
@@ -54,13 +86,16 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                     </div>
                 </div>
 
-                {/* Room fields */}
+                {/* Room Input Row */}
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1.5fr_1fr_100px_100px_140px_auto] gap-4 items-end">
                         {/* Room Type */}
                         <div className="space-y-2">
                             <Label className="required">Room Type</Label>
-                            <Select>
+                            <Select
+                                value={currentRoom.roomTypeId}
+                                onValueChange={(v) => setCurrentRoom(prev => ({ ...prev, roomTypeId: v }))}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select Room Type" />
                                 </SelectTrigger>
@@ -76,7 +111,10 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                         {/* Rate Plan */}
                         <div className="space-y-2">
                             <Label>Rate Plan</Label>
-                            <Select>
+                            <Select
+                                value={currentRoom.ratePlanId}
+                                onValueChange={(v) => setCurrentRoom(prev => ({ ...prev, ratePlanId: v }))}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select" />
                                 </SelectTrigger>
@@ -90,12 +128,17 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                         {/* Room No */}
                         <div className="space-y-2">
                             <Label className="required">Room No.</Label>
-                            <Select>
+                            <Select
+                                value={currentRoom.roomNumber}
+                                onValueChange={(v) => setCurrentRoom(prev => ({ ...prev, roomNumber: v }))}
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="101">101</SelectItem>
+                                    <SelectItem value="102">102</SelectItem>
+                                    <SelectItem value="201">201</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -103,23 +146,42 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                         {/* Adults */}
                         <div className="space-y-2">
                             <Label className="required">Adults</Label>
-                            <Input type="number" min={1} defaultValue={1} />
+                            <Input
+                                type="number"
+                                min={1}
+                                value={currentRoom.adults}
+                                onChange={(e) => setCurrentRoom(prev => ({ ...prev, adults: parseInt(e.target.value) || 1 }))}
+                            />
                         </div>
 
                         {/* Child */}
                         <div className="space-y-2">
                             <Label>Child</Label>
-                            <Input type="number" min={0} defaultValue={0} />
+                            <Input
+                                type="number"
+                                min={0}
+                                value={currentRoom.children}
+                                onChange={(e) => setCurrentRoom(prev => ({ ...prev, children: parseInt(e.target.value) || 0 }))}
+                            />
                         </div>
 
                         {/* Rate */}
                         <div className="space-y-2">
                             <Label className="required">Rate (₹)</Label>
-                            <Input type="number" placeholder="0.00" />
+                            <Input
+                                type="number"
+                                placeholder="0.00"
+                                value={currentRoom.price}
+                                onChange={(e) => setCurrentRoom(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                            />
                         </div>
 
                         {/* Add button */}
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white whitespace-nowrap">
+                        <Button
+                            type="button"
+                            onClick={handleAddRoom}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white whitespace-nowrap"
+                        >
                             <Plus className="h-4 w-4 mr-1" /> Add
                         </Button>
                     </div>
@@ -130,6 +192,47 @@ export function RoomSelection({ form }: RoomSelectionProps) {
                         </Button>
                     </div>
                 </div>
+
+                {/* Selected Rooms List */}
+                {fields.length > 0 && (
+                    <div className="mt-6 border rounded-lg overflow-hidden">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-muted text-muted-foreground">
+                                <tr>
+                                    <th className="p-3 font-medium">Room Type</th>
+                                    <th className="p-3 font-medium">Room No</th>
+                                    <th className="p-3 font-medium">Rate Plan</th>
+                                    <th className="p-3 font-medium">Guests</th>
+                                    <th className="p-3 font-medium text-right">Rate</th>
+                                    <th className="p-3 font-medium"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                                {fields.map((field: any, index) => (
+                                    <tr key={field.id} className="bg-card">
+                                        <td className="p-3 capitalize">{field.roomTypeId}</td>
+                                        <td className="p-3">{field.roomNumber}</td>
+                                        <td className="p-3 capitalize">{field.ratePlanId}</td>
+                                        <td className="p-3">
+                                            {field.adults} Adult, {field.children} Child
+                                        </td>
+                                        <td className="p-3 text-right">₹{field.price}</td>
+                                        <td className="p-3 text-right">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => remove(index)}
+                                                className="text-destructive hover:text-destructive/90"
+                                            >
+                                                Remove
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </CardContent>
         </Card>
     )

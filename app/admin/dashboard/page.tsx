@@ -24,8 +24,8 @@ import { CreateTenantDialog } from "./create-tenant-dialog"
 async function getTenants() {
     return await prisma.tenant.findMany({
         include: {
-            users: {
-                where: { role: "OWNER" },
+            memberships: {
+                where: { role: "ADMIN" }, // Changed from OWNER to ADMIN as OWNER role was removed
                 include: { user: true }
             }
         },
@@ -108,7 +108,7 @@ export default async function AdminDashboard() {
                                         <TableCell className="font-medium">{tenant.name}</TableCell>
                                         <TableCell>{tenant.propertyCode}</TableCell>
                                         <TableCell>
-                                            {tenant.users[0]?.user.email || "No Owner"}
+                                            {tenant.memberships[0]?.user.email || "No Owner"}
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant="outline">{tenant.subscriptionPlan}</Badge>
